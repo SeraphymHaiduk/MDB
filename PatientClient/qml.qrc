@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>MainWindow/Mainwindow.qml</file>
+        <file>MainWindow/MainwindowForm.ui.qml</file>
+        <file>MainWindow/Info/Info.qml</file>
+        <file>MainWindow/Info/InfoForm.ui.qml</file>
+        <file>MainWindow/Info/thisPersonDoesntExist.png</file>
+        <file>MainWindow/Appointments/Appointments.qml</file>
+        <file>MainWindow/Appointments/AppointmentsForm.ui.qml</file>
+        <file>MainWindow/Recipes/Recipes.qml</file>
+        <file>MainWindow/Recipes/RecipesForm.ui.qml</file>
+        <file>MainWindow/Info/Note.qml</file>
+    </qresource>
+</RCC>
