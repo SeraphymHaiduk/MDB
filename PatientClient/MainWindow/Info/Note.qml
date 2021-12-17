@@ -1,9 +1,8 @@
 import QtQuick 2.0
 
 Rectangle{
-    width: parent.width
+    width: 400
     height: 100
-    visible: notesVisible
     color: "red"
 }
 

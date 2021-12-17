@@ -13,42 +13,29 @@ Item {
     property string uuid: ""
     property string sex: ""
     property string date: ""
-    property alias loadBt: loadBt
-    property alias rectangle: rectangle
-    property alias column: column
-    property alias flickable: flickable
-    property alias rootRect: rectangle
+    property string image: ""
+    property alias profileRectangle: profileRectangle
+    property alias list:list
     Rectangle {
         id: rectangle
-        anchors.fill: parent
-
         color: "#ffffff"
-        Flickable {
-            id: flickable
+        anchors.fill: parent
+        SwipeView{
             anchors.fill: parent
-            anchors.margins: 10
-            contentHeight: column.height
-            Column {
-                id: column
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                }
-                spacing: 10
+            Item {
+                id: profile
                 Rectangle {
-                    id: rectangle1
-                    height: text3.y - rectangle1.y + text3.height + 25
+                    id: profileRectangle
+                    height: text3.y  + text3.height + 25
                     anchors {
+                        fill: parent
                         margins: 8
-                        left: parent.left
-                        right: parent.right
                     }
                     radius: 25
                     color: "#d3d7cf"
-
                     Image {
                         id: borderImage
-                        source: "thisPersonDoesntExist.png"
+                        source: image
                         layer.enabled: false
                         anchors {
                             horizontalCenter: parent.horizontalCenter
@@ -121,23 +108,76 @@ Item {
                         text: "uuid: " + uuid
                     }
                 }
-                Button {
-                    id: loadBt
-                    height: root.height * 0.1
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        margins: 10
+            }
+            Item {
+                id: notation
+                ListView{
+                    id:list
+                    width: parent.width
+                    anchors{
+                        fill:parent
+                        leftMargin: 8
+                        rightMargin: 8
+                        topMargin: 8
+                    }
+                    spacing: 10
+
+                    delegate: Note{
+                        height: rectangle.height*0.1
+                        width: list.width
+
+                    }
+                    model: ListModel{
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+                        ListElement{}
+
                     }
                 }
             }
+
+
+
+
+
         }
+
+
+
+
+
     }
 }
 
 /*##^##
 Designer {
-    D{i:0;formeditorZoom:0.66}
+    D{i:0;formeditorZoom:0.66}D{i:4}D{i:5}D{i:6}D{i:7}D{i:8}D{i:9}D{i:3}D{i:10}D{i:2}
+D{i:1}
 }
 ##^##*/
 

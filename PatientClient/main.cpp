@@ -2,7 +2,9 @@
 #include <QQmlApplicationEngine>
 #include <QtSql>
 #include <QSqlDatabase>
-#include "requestsender.h"
+#include "requestHandlerClient.h"
+#include <QQuickView>
+#include "localconfig.h"
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -10,6 +12,8 @@ int main(int argc, char *argv[])
 #endif
   QGuiApplication app(argc, argv);
 
+  qmlRegisterType<RequestHandlerClient>("RequestHandler",1,0,"Handler");
+  qmlRegisterType<LocalConfig>("LocalConfig",1,0,"LocalConfig");
   QQmlApplicationEngine engine;
   const QUrl url(QStringLiteral("qrc:/main.qml"));
   QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -17,7 +21,9 @@ int main(int argc, char *argv[])
     if (!obj && url == objUrl)
       QCoreApplication::exit(-1);
   }, Qt::QueuedConnection);
+
   engine.load(url);
+
 /*
   QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
   db.setDatabaseName("test1_db");
@@ -35,8 +41,8 @@ int main(int argc, char *argv[])
   q.next();
   c.append(q.value(4).toString());
   qDebug()<<c;
-    */
-    RequestSender *rs = new RequestSender();
-
-  return app.exec();
+*/
+/*    QDate d = QDate::fromString("2012-12-10","yyyy-MM-dd");
+    qDebug() << d.day();*/
+  return app.exec();;
 }

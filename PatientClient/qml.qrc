@@ -11,5 +11,14 @@
         <file>MainWindow/Recipes/Recipes.qml</file>
         <file>MainWindow/Recipes/RecipesForm.ui.qml</file>
         <file>MainWindow/Info/Note.qml</file>
+        <file>AutorizationWindow/AuthorizationWindow.qml</file>
+        <file>AutorizationWindow/AuthorizationWindowForm.ui.qml</file>
+        <file>AutorizationWindow/Login.qml</file>
+        <file>AutorizationWindow/LoginForm.ui.qml</file>
+        <file>AutorizationWindow/SignUp.qml</file>
+        <file>AutorizationWindow/SignUpForm.ui.qml</file>
+        <file>AutorizationWindow/Pincode.qml</file>
+        <file>AutorizationWindow/PincodeForm.ui.qml</file>
+        <file>AutorizationWindow/RoundButton.qml</file>
     </qresource>
 </RCC>

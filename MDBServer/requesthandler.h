@@ -11,22 +11,28 @@ enum class Commands{
     GENERATE_TOKEN,
     LOGIN,
     SIGN_UP,
+    SIGN_UP_CONFIRM,
     GET_M_CARD_TITLE,
     FIND_DOCTOR,
     GET_DOCTOR_INFO,
+    CLIENT_TYPE,
+    NAME,
+    SURNAME,
+    PATRONYMIC,
+    PASSWORD,
 };
 class RequestHandler : public QObject
 {
     Q_OBJECT
 public slots:
     void connectUser(QTcpServer *server);
-    void recieveRequest(QTcpSocket *socket);
+    void receiveRequest(QTcpSocket *socket);
 public:
     RequestHandler(QObject *parent = 0);
     ~RequestHandler();
     void interpret(QTcpSocket *socket);
-    void sendData(QTcpSocket *user,QString params, const QByteArray &data);
-    QByteArray generate_token();
+    void send(QTcpSocket *user,const QByteArray &params, const QByteArray &data = "");
+    QString generate_token();
     void dbRequest(QString s);
 private:
     QTcpServer *server;
@@ -34,7 +40,7 @@ private:
     QByteArray requestParams;
     QByteArray requestData;
 
-    QSqlDatabase usersDB;
+    QSqlDatabase patientDB;
     QSqlDatabase patientsDB;
     QSqlDatabase doctorsDB;
 
@@ -51,6 +57,11 @@ private:
         {"GET_M_CARD_TITLE",    Commands::GET_M_CARD_TITLE},
         {"FIND_DOCTOR",         Commands::FIND_DOCTOR},
         {"GET_DOCTOR_INFO",     Commands::GET_DOCTOR_INFO},
+        {"CLIENT_TYPE",         Commands::CLIENT_TYPE},
+        {"NAME",                Commands::NAME},
+        {"SURNAME",             Commands::SURNAME},
+        {"PATRONYMIC",          Commands::PATRONYMIC},
+        {"PASSWORD",            Commands::PASSWORD},
     };
 };
 
