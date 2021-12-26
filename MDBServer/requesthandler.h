@@ -8,11 +8,8 @@
 #include <QSqlDatabase>
 #include <QtSql>
 enum class Commands{
-    GENERATE_TOKEN,
     LOGIN,
     SIGN_UP,
-    SIGN_UP_CONFIRM,
-    GET_M_CARD_TITLE,
     FIND_DOCTOR,
     GET_DOCTOR_INFO,
     CLIENT_TYPE,
@@ -20,6 +17,9 @@ enum class Commands{
     SURNAME,
     PATRONYMIC,
     PASSWORD,
+    UUID,
+    GET,
+    PROFILE_PROPS,
 };
 class RequestHandler : public QObject
 {
@@ -44,17 +44,15 @@ private:
     QSqlDatabase patientsDB;
     QSqlDatabase doctorsDB;
 
-
+    bool fillParamsMap(QMap<QString,QString*> &map,QList<QString>::iterator &it,QList<QString>::iterator &&itEnd,QList<QString> params = {});
 
     uint16_t requestDataSize = 0;
     uint16_t requestParamSize = 0;
     bool paramsWasRead = false;
     bool dataWasRead = false;
     QMap<QString,Commands> Dict = {
-        {"GENERATE_TOKEN",      Commands::GENERATE_TOKEN},
         {"LOGIN",               Commands::LOGIN},
         {"SIGN_UP",             Commands::SIGN_UP},
-        {"GET_M_CARD_TITLE",    Commands::GET_M_CARD_TITLE},
         {"FIND_DOCTOR",         Commands::FIND_DOCTOR},
         {"GET_DOCTOR_INFO",     Commands::GET_DOCTOR_INFO},
         {"CLIENT_TYPE",         Commands::CLIENT_TYPE},
@@ -62,6 +60,9 @@ private:
         {"SURNAME",             Commands::SURNAME},
         {"PATRONYMIC",          Commands::PATRONYMIC},
         {"PASSWORD",            Commands::PASSWORD},
+        {"UUID",                Commands::UUID},
+        {"GET",                 Commands::GET},
+        {"PROFILE_PROPS",       Commands::PROFILE_PROPS},
     };
 };
 

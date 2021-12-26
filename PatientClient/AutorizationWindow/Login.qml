@@ -1,8 +1,9 @@
 import QtQuick 2.4
 
 LoginForm {
+    id: root
     signal signUpClicked()
-    signal loginClicked()
+    signal loginClicked(string uuid, string password, string client_type)
     mouseArea {
         onClicked: {
             signUpClicked()
@@ -10,7 +11,9 @@ LoginForm {
     }
     button{
         onClicked: {
-            loginClicked()
+            if(btMedWorker.checked || btPatient.checked){
+                root.loginClicked(uuidText,passwordText,btMedWorker.checked?"DOCTOR":"PATIENT")
+            }
         }
     }
 }

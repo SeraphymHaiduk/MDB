@@ -1,12 +1,29 @@
 import QtQml 2.12
 import QtQml.Models 2.2
 import QtQuick 2.12
+import QtQuick.Controls 2.12
 
 PincodeForm {
     property string txt: ""
     signal pincodeEntered(string pin)
+    property alias backBt: backBt
+    signal backPressed()
+        Button{
+            id:backBt
+            text: "Назад"
+            anchors{
+                horizontalCenter: parent.horizontalCenter
+                verticalCenter: parent.bottom
+                verticalCenterOffset: -buttons.anchors.bottomMargin/2
+            }
+            height: parent.height*0.05
+            onClicked: {
+                backPressed()
+            }
+        }
     Text{
-        height: parent.height*0.1
+        id:message
+        height: parent.height*0.05
         text: txt
         anchors{
             top: parent.top

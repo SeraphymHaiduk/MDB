@@ -10,7 +10,8 @@ public:
     LocalConfig(QObject *parent = 0);
     Q_INVOKABLE void setConfigProperties(QVariantMap values);
     Q_INVOKABLE QVariantMap getConfigProperties();
-    Q_INVOKABLE QString getActualToken();
+    Q_INVOKABLE QVariantMap getLoginProperties();//переделать в сpp под QVariantMap
+    Q_INVOKABLE QVariantMap getActualToken();//переделать в сpp под QVariantMap
 /*    Q_INVOKABLE void setUserProperties(QVariantMap values);
     Q_INVOKABLE QVariantMap getUserProperties();
     Q_INVOKABLE void addNotation(QVariantMap values);

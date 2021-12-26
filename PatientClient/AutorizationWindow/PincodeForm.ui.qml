@@ -1,6 +1,6 @@
 import QtQuick 2.15
-import QtGraphicalEffects 1.15
 
+import QtGraphicalEffects 1.15
 
 Rectangle {
     id: root
@@ -19,6 +19,7 @@ Rectangle {
     property alias bt0: bt0
     property alias dots: dots
     property alias btOk: btOk
+    property alias buttons: buttons
     color: "skyblue"
     ListView{
         id: dots
@@ -43,12 +44,13 @@ Rectangle {
         spacing: dotSize*2
         orientation: ListView.Horizontal
         model: ListModel{
-            ListElement{}
-            ListElement{}
-            ListElement{}
-            ListElement{}
+            ListElement{num:1}
+            ListElement{num:2}
+            ListElement{num:3}
+            ListElement{num:4}
         }
     }
+
     Grid{
         id:buttons       
         anchors{
@@ -58,7 +60,7 @@ Rectangle {
             rightMargin: parent.width*0.1
            // horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
-            bottomMargin: parent.height*0.05
+            bottomMargin: parent.height*0.1
         }
         property int buttonHeight: width*0.29
         height: buttonHeight*4+spacing*3
@@ -81,6 +83,7 @@ Rectangle {
         RoundButton{id:btOk;width: parent.buttonHeight;height: width;text:"Ok"}
 
     }
+
 }
 
 /*##^##

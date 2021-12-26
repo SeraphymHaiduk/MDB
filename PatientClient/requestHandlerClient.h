@@ -11,6 +11,7 @@ enum class Commands{
     ACCESS_TK,
     REFRESH_TK,
     DATE,
+    CLIENT_TYPE,
 
 };
 
@@ -42,11 +43,13 @@ public:
          {"ACCESS_TK",          Commands::ACCESS_TK},
          {"REFRESH_TK",         Commands::REFRESH_TK},
          {"DATE",               Commands::DATE},
+         {"CLIENT_TYPE",        Commands::CLIENT_TYPE},
         }
 
     };
 signals:
-    void signUpDataReceived(QString uuid,QString access_token,QString refresh_token,QString date);
+    void signUpDataReceived(QString uuid,QString access_token,QString refresh_token,QString date, QString client_type);
+    void loginDataRecieved(QString access_token, QString refresh_token, QString date, QString client_type);
 
 };
 #endif // REQUESTHANDLERCLIENT_H

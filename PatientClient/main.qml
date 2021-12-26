@@ -13,92 +13,157 @@ Window {
     Loader{
         id:mainLoader
         anchors.fill: parent
-        sourceComponent: loginComponent
-        property string pincodeMessadge: pincodeNew?"Придумайте пинкод":"Введите пинкод"
+        sourceComponent: authComponent
+        property string pincodeMessadge: ""
         property bool pincodeNew: false
         property string pincodeBuf: ""
+
     }
     Component{
-        id:autorizationComponent
+        id:authComponent
         AuthorizationWindow{
-
+            onSignUpClicked: {
+                handler.send("SIGN_UP CLIENT_TYPE %1 NAME %2 SURNAME %3 PATRONYMIC %4 PASSWORD %5".arg(client_type).arg(name).arg(surname).arg(patronymic).arg(password))
+                localConfig.setConfigProperties({"password":password})
+            }
+            onLoginClicked: {
+                handler.send("LOGIN CLIENT_TYPE %1 UUID %2 PASSWORD %3".arg(client_type).arg(uuid).arg(password))
+                localConfig.setConfigProperties({"uuid":uuid,"password":password})
+            }
         }
     }
+
     Component{
-        id:loginComponent
-        Login{
-            onLoginClicked: {
-                console.log("LoginClicked")
+        id:newPincodeComponent
+        Pincode{
+            id:newPincode
+            txt: mainLoader.pincodeMessadge
+            onBackPressed: {
+                pin = ""
+                mainLoader.pincodeBuf = ""
+                mainLoader.pincodeMessadge = "Придумайте пинкод"
             }
-            onSignUpClicked: console.log("SignUpClicked")
+            Component.onCompleted: {
+                newPincode.pincodeEntered.connect(newPinEntered)
+                mainLoader.pincodeMessadge = "Придумайте пинкод"
+            }
+        }
+
+    }
+    function newPinEntered(pin){
+        if(mainLoader.pincodeBuf.length>0){
+            if(pin === mainLoader.pincodeBuf){
+                localConfig.setConfigProperties({"pincode":pin})
+                mainLoader.sourceComponent = mainWindowComponent
+            }
+            else{
+                mainLoader.pincodeMessadge = "Код не совпадает"
+            }
+        }
+        else{
+            mainLoader.pincodeBuf = pin
+            mainLoader.pincodeMessadge = "повторите пароль"
         }
     }
     Component{
         id:pincodeComponent
         Pincode{
             id:pincode
-            txt: mainLoader.pincodeMessadge
+            txt:mainLoader.pincodeMessadge
+            onBackPressed: {
+                mainLoader.sourceComponent = authComponent
+            }
             Component.onCompleted: {
-                pincode.pincodeEntered.connect(foo)
+                pincode.pincodeEntered.connect(checkPin)
+                mainLoader.pincodeMessadge = "Введите пинкод"
+                backBt.text = "войти в другой аккаунт"
+
             }
         }
-
     }
-    function foo(pin){
-        if(mainLoader.pincodeNew){
-            if(mainLoader.pincodeBuf.length>0){
-                if(pin == mainLoader.pincodeBuf){
-                 //localConfig.setConfigProperties()   сделать нормально
-                    mainLoader.sourceComponent = mainWindowComponent
-                }
-                else{
-                    console.log("pincode not repeated") //cделать нормальное уведомление о неповторившемся пинкоде
-                }
-            }
-            else{
-                mainLoader.pincodeBuf = pin
-            }
 
-
+    function checkPin(pin){
+        arr = localConfig.getConfigProperties()
+        if(arr["pincode"]===pin){
+            mainLoader.sourceComponent = mainWindowComponent
         }
-        else{
-            //запрос пинкода из конфига
-            //если совпадает, то пропустить, если нет, то сообщить о не неверном пароле
-        }
-
     }
     Component{
         id:mainWindowComponent
         Mainwindow{
-
+            property variant config
+        Component.onCompleted: {
+            config = localConfig.getConfigProperties()
+            handler.send("%1 GET PROFILE_PROPS UUID %2".arg(config["access_token"]).arg(config["uuid"]))
+        }
         }
     }
-    property string params: "ABOBA"
+
     Handler{
         id:handler
     }
     LocalConfig{
         id:localConfig
     }
-
+    property variant loginInfo
+    property variant arr
     Component.onCompleted: {
-        handler.send(params)
-        if(localConfig.getActualToken() === "none"){
-            mainLoader.source = "AutorizationWindow/Login.qml"
+        loginInfo = localConfig.getLoginProperties()
+        if(loginInfo["uuid"] === "none" || loginInfo["password"] === "none"){
+            mainLoader.sourceComponent = authComponent
+// /*строка только для тестов*/handler.send("SIGN_UP CLIENT_TYPE PATIENT SURNAME Zelensky PATRONYMIC Antonovich PASSWORD 1122334455 NAME Valeriy")
         }
-        handler.send("SIGN_UP CLIENT_TYPE PATIENT NAME Valeriy SURNAME Zelensky PATRONYMIC Antonovich PASSWORD 1122334455")
+        else{//переработать - если нет access, то if(arr["refresh"]!== "none") send("'refresh_tk REFRESH'"), иначе - send("LOGIN ...")
+            arr = localConfig.getActualToken()
+            if(arr["access"]==="none"){
+                handler.send("LOGIN CLIENT_TYPE %1 UUID %2 PASSWORD %3".arg(loginInfo["client_type"]).arg(loginInfo["uuid"]).arg(loginInfo["password"]))
+            }
+            else{
+                if(arr["pincode"] === "" || arr["pincode"] === undefined){
+                    mainLoader.sourceComponent = mainWindowComponent
+                }
+                else{
+                    mainLoader.sourceComponent = pincodeComponent
+                }
+            }
+        }
+        /*
+        else if(arr["pincode"] === ""){//Сделать, чтобы сначала отправлялся Login запрос, а потом переключать на пинкод
+            mainLoader.sourceComponent = newPincodeComponent
+        }
+        else{
+            mainLoader.sourceComponent = pincodeComponent
+        }*/
 
     }
     Connections{
         target: handler
-        function onSignUpDataReceived(uuid,access_tk,refresh_tk,date){
-            console.log(uuid+" "+access_tk+" "+refresh_tk+" "+date)
-            mainLoader.sourceComponent = pincodeComponent
-            mainLoader.pincodeNew = true
-
-
+        function onSignUpDataReceived(uuid,access_tk,refresh_tk,date,client_type){
+            arr = {"uuid":uuid,
+                "access_token":access_tk,
+                "refresh_token":refresh_tk,
+                "access_date":date,
+                "refresh_date":date,
+                "pincode":""}
+            localConfig.setConfigProperties(arr)
+            mainLoader.sourceComponent = newPincodeComponent
+        }
+        function onLoginDataRecieved(access_tk,refresh_tk,date,client_type){
+            arr = localConfig.getConfigProperties()
+            if(arr["pincode"] === ""||arr["pincode"] === undefined){
+                mainLoader.sourceComponent = newPincodeComponent
+            }
+            else {
+                mainLoader.sourceComponent = pincodeComponent
+            }
+            arr = {"access_token":access_tk,
+                    "refresh_token":refresh_tk,
+                    "refresh_date":date,
+                    "access_date":date,
+                    "client_type":client_type,
+                    "pincode":""}
+            localConfig.setConfigProperties(arr)
 
         }
     }
-
 }

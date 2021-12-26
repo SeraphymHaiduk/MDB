@@ -48,23 +48,23 @@ void RequestHandler::receiveRequest(QTcpSocket *socket){
             qDebug() << "params size " <<requestParamSize;
             qDebug() << "data size " << requestDataSize;
     }
-    qDebug() << "1 point";
+  //  qDebug() << "1 point";
 
     if(!paramsWasRead){
                 qDebug() << "2 point";
         if(socket->bytesAvailable() < requestParamSize)
             return;
         paramsWasRead = true;
-        qDebug() << "2.1 point";
+//        qDebug() << "2.1 point";
         if(requestParams.size()){
             requestParams.clear(); //Вылет
         }
-        qDebug() << "2.2 point";
+//        qDebug() << "2.2 point";
         requestParams.resize(requestParamSize);
         in.readRawData(requestParams.data(),requestParamSize);
     }
     if(!dataWasRead){
-        qDebug() << "3 point";
+//        qDebug() << "3 point";
         if(socket->bytesAvailable() < requestDataSize )
             return;
         dataWasRead = true;
@@ -74,7 +74,7 @@ void RequestHandler::receiveRequest(QTcpSocket *socket){
         requestData.resize(requestDataSize);
         in.readRawData(requestData.data(),requestDataSize);
     }
-    qDebug() << "4 point";
+//    qDebug() << "4 point";
     requestParamSize = 0;
     requestDataSize = 0;
     paramsWasRead = false;
@@ -88,99 +88,68 @@ void RequestHandler::receiveRequest(QTcpSocket *socket){
 
 void RequestHandler::interpret(QTcpSocket* socket){
     QStringList params = QString(requestParams.data()).split(" ");
-    if(params[0]=="ABOBA"){
-        qDebug() << "Получено";
-        return;
-    }
-    if((params[0] != "LOGIN") && (params[0] != "SIGN_UP")){
-        //проверка токена
-    }
-
     QList<QString>::Iterator it = params.begin();
+    QString token = "";
+    if(params[0]!="LOGIN"&&params[0]!="SIGN_UP"&&params[0]!="REFRESH_TOKENS"){
+        token = params[0];
+        it++;
+    }
     switch (Dict[*it++]) {
-    case Commands::GET_M_CARD_TITLE:{
+    case Commands::GET:{
+        switch (Dict[*it++]) {
+        case Commands::PROFILE_PROPS:{
+            QMap<QString,QString*> values = {
+                {"client_type",NULL},
+                {"uuid",NULL},
+                {"password",NULL},
+            };
+        break;
+        }
+
+        }
         break;
     }
     case Commands::LOGIN:{ //проверить, совпадает ли имя, фамилия, отчество и пароль
-        while(it != params.end()){
-            switch (Dict[*it++]) {
-            case Commands::CLIENT_TYPE:{
 
-            break;
-            }
-            }
+        QMap<QString,QString*> values;
+        if(!fillParamsMap(values,it,params.end(),{"CLIENT_TYPE","UUID","PASSWORD"})){
+            return;
         }
-        QString &client_type = params[1];
-        QString &uuid = params[2];
-        QString &password = params[3];
-
         QSqlQuery query;
-        query.exec(QString("SELECT password FROM %1 WHERE uuid = '%2'").arg(client_type, uuid));
+        query.exec(QString("SELECT password FROM %1 WHERE uuid = '%2'").arg(*values["CLIENT_TYPE"], *values["UUID"]));
         while(query.next()){
-            if(password == query.value(0)){
-
-                query.exec(QString("UPDATE TABLE %1 SET "));
-                //отправить их клиенту
+            if(*values["PASSWORD"] == query.value(0).toString()){
+                QString access_token = generate_token();
+                QString refresh_token = generate_token();
+                QString date = QDate::currentDate().toString("dd-MM-yyyy");
+                if(!query.exec(QString("UPDATE %1 SET tokens = tokens || '{\"access_token\":\"%2\",\"refresh_token\":\"%3\",\"access_date\":\"%4\",\"refresh_date\":\"%4\"}'::jsonb ").arg(*values["CLIENT_TYPE"],access_token,refresh_token,date))){
+                    qDebug() << "LOGIN sql request error: " << query.lastError().text();
+                    send(socket,(QString("LOGIN_CONFIRM REJECTED %1").arg(query.lastError().text())).toUtf8());
+                }
+                else{
+                    send(socket,(QString("LOGIN_CONFIRM ACCEPTED ACCESS_TK %1 REFRESH_TK %2 DATE %3 CLIENT_TYPE %4").arg(access_token,refresh_token,date,*values["CLIENT_TYPE"])).toUtf8());
+                }
                 break;
             }
         }
         break;
     }
     case Commands::SIGN_UP:{
-        QMap<QString,QString*> values = {
-            {"client_type",NULL},
-            {"name",NULL},
-            {"surname", NULL},
-            {"patronymic", NULL},
-            {"password", NULL}
-        };
+        QMap<QString,QString*> values;
         QSqlQuery q;
-        while(it!=params.end()){
-            switch (Dict[*it++]) {
-            case Commands::CLIENT_TYPE:{
-                values["client_type"] = &(*it++);
-                break;
-            }
-            case Commands::NAME:{
-                values["name"] = &(*it++);
-                break;
-            }
-            case Commands::SURNAME:{
-                values["surname"] = &(*it++);
-                break;
-            }
-            case Commands::PATRONYMIC:{
-                values["patronymic"] = &(*it++);
-                break;
-            }
 
-            case Commands::PASSWORD:{
-                values["password"] = &(*it++);
-                break;
-            }
-
-            }
-        }
-        QList<QString> lst = values.keys();
-        int count = 0;
-        foreach(QString s, lst ){
-            if(values[s] == NULL){
-                send(socket,QString("%1 parameter is NULL").arg(s).toUtf8());
-                count++;
-            }
-        }
-        if(count>0){
+        if(!fillParamsMap(values,it,params.end(),{"CLIENT_TYPE","NAME","SURNAME","PATRONYMIC","PASSWORD"})){
             return;
         }
             srand(time(NULL));
             QString uuid = generate_token();
             q.prepare(QString("INSERT INTO %6(uuid,name,surname,patronymic,password)"
                               "VALUES('%1','%2','%3','%4','%5')").arg(  uuid,
-                                                                        *values["name"],
-                                                                        *values["surname"],
-                                                                        *values["patronymic"],
-                                                                        *values["password"],
-                                                                        *values["client_type"]
+                                                                        *values["NAME"],
+                                                                        *values["SURNAME"],
+                                                                        *values["PATRONYMIC"],
+                                                                        *values["PASSWORD"],
+                                                                        *values["CLIENT_TYPE"]
                                                                         ));
             if(q.exec()){
                 qDebug() << "signup started";
@@ -191,7 +160,7 @@ void RequestHandler::interpret(QTcpSocket* socket){
                 if(q.exec(QString("UPDATE PATIENT SET tokens = "
                                "tokens || '{\"access_token\":\"%1\",\"refresh_token\":\"%2\",\"access_date\":\"%3\",\"refresh_date\":\"%3\"}'::jsonb "
                                "WHERE uuid = '%4'").arg(access,refresh,sDate,uuid))){
-                    send(socket,QString("SIGN_UP_CONFIRM ACCEPTED UUID %1 ACCESS_TK %2 REFRESH_TK %3 DATE %4").arg(uuid,access,refresh,sDate).toUtf8());
+                    send(socket,QString("SIGN_UP_CONFIRM ACCEPTED UUID %1 ACCESS_TK %2 REFRESH_TK %3 DATE %4 CLIENT_TYPE %5").arg(uuid,access,refresh,sDate,*values["CLIENT_TYPE"]).toUtf8());
                 }
                 else{
                     qDebug() << q.lastError().text();
@@ -212,6 +181,47 @@ void RequestHandler::interpret(QTcpSocket* socket){
         break;
     }
     }
+}
+bool RequestHandler::fillParamsMap(QMap<QString,QString*> &map,
+                                   QList<QString>::iterator &it,
+                                   QList<QString>::iterator &&itEnd, QList<QString> params){
+    QList<QString>::iterator &end = itEnd;
+    if(params.size()!=0){
+        map.clear();
+        for(const auto& s:params){
+            map[s] = nullptr;
+            qDebug() << s + " now is null";
+        }
+    }
+    for(const auto&s: params){
+        if(it!=end){
+            if(params.contains(*it++)){
+                qDebug() << *it+" checked";
+                if(it!=end){
+                    map[s] = &(*it++);
+                    qDebug() << *map[s];
+                }
+            }
+        }
+        qDebug() << map;
+    }
+
+        int count = 0;
+        for(const auto& s: params){
+            if(map[s] == nullptr){
+                qDebug() << s+" in map: " <<map[s];
+                qDebug() << QString("%1 is null").arg(s);
+                count++;
+            }
+            qDebug() << map;
+        }
+        if(count > 0 || map.size() == 0){
+            return 0;
+        }
+        else{
+            return 1;
+        }
+
 }
 void RequestHandler::send(QTcpSocket *socket, const QByteArray &params, const QByteArray &data){
     qDebug() << "data sended " << params;
