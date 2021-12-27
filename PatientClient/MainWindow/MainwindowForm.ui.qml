@@ -5,13 +5,11 @@ Item {
     id: item1
     width: 360
     height: 640
-    property string loaderSource: "Info/Info.qml"
-
 
     property alias infoBt: infoBt
     property alias appointmentsBt: appointmentsBt
     property alias recipesBt: recipesBt
-
+    property alias loader:loader
     Page {
         id: page
         anchors.fill: parent
@@ -21,7 +19,7 @@ Item {
             anchors {
                 fill: parent
             }
-            source: loaderSource
+            sourceComponent: infoComponent
         }
         header: ToolBar {
             id: toolBar

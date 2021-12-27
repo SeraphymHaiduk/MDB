@@ -16,11 +16,14 @@ Item {
     property string image: ""
     property alias profileRectangle: profileRectangle
     property alias list:list
+    property alias listmodel: listmodel
+    property alias swipeView: swipeView
     Rectangle {
         id: rectangle
         color: "#ffffff"
         anchors.fill: parent
         SwipeView{
+            id:swipeView
             anchors.fill: parent
             Item {
                 id: profile
@@ -125,46 +128,17 @@ Item {
                     delegate: Note{
                         height: rectangle.height*0.1
                         width: list.width
-
+                        dateStr: date
+                        doctorStr: doctor
+                        complaintsStr: complaints
+                        conclusionStr: conclusion
+                        referralStr: referral
                     }
                     model: ListModel{
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-                        ListElement{}
-
+                        id:listmodel
                     }
                 }
             }
-
-
-
-
-
         }
 
 

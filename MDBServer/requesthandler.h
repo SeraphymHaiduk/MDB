@@ -20,6 +20,7 @@ enum class Commands{
     UUID,
     GET,
     PROFILE_PROPS,
+    VISITS_HISTORY,
 };
 class RequestHandler : public QObject
 {
@@ -34,6 +35,7 @@ public:
     void send(QTcpSocket *user,const QByteArray &params, const QByteArray &data = "");
     QString generate_token();
     void dbRequest(QString s);
+
 private:
     QTcpServer *server;
 
@@ -45,11 +47,12 @@ private:
     QSqlDatabase doctorsDB;
 
     bool fillParamsMap(QMap<QString,QString*> &map,QList<QString>::iterator &it,QList<QString>::iterator &&itEnd,QList<QString> params = {});
-
+    bool checkToken(QSqlQuery &q, QString uuid, QString token,QString client_type);
     uint16_t requestDataSize = 0;
     uint16_t requestParamSize = 0;
     bool paramsWasRead = false;
     bool dataWasRead = false;
+
     QMap<QString,Commands> Dict = {
         {"LOGIN",               Commands::LOGIN},
         {"SIGN_UP",             Commands::SIGN_UP},
@@ -63,6 +66,7 @@ private:
         {"UUID",                Commands::UUID},
         {"GET",                 Commands::GET},
         {"PROFILE_PROPS",       Commands::PROFILE_PROPS},
+        {"VISITS_HISTORY",     Commands::VISITS_HISTORY},
     };
 };
 

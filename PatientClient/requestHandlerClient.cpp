@@ -2,10 +2,11 @@
 #include <QHostAddress>
 #include <QByteArray>
 #include <QDataStream>
+#define ADRESS "192.168.0.104"
 RequestHandlerClient::RequestHandlerClient(QObject *parent) : QObject(parent)
 {
     socket = new QTcpSocket(this);
-    socket->connectToHost(QHostAddress::LocalHost,2323);
+    socket->connectToHost(ADRESS,2323);
     QObject::connect(socket,&QTcpSocket::connected,this,[=](){qDebug() << "connected";});
     QObject::connect(socket,&QTcpSocket::readyRead,this,[=](){this->receiveRequest(socket);});
 }
@@ -64,6 +65,59 @@ void RequestHandlerClient::interpret(){
     qDebug() << "interpreted";
 
     switch (Dict[*it++]) {
+    case Commands::VISITS_HISTORY:{
+        qDebug() << "visits history";
+        int rowsNum = 0;
+        int columnsNum = 0;
+        QList<QString*> lst;
+        while(columnsNum==0||rowsNum==0){
+            qDebug() << "while moment";
+            if(*it == "COLUMNS"){
+                it++;
+                if(it!=params.end()){
+                    columnsNum = QVariant(*it++).toInt();
+                    if(it!=params.end()){
+                        for(int i = 0; i < columnsNum; i++){
+                            qDebug() << "for moment";
+                            if(it!=params.end())
+                                lst.append(&(*it++));
+                        }
+                    }
+                }
+            }
+            else if(*it == "ROWS"){
+                if(it!=params.end()){
+                    it++;
+                    if(it!=params.end()){
+                        rowsNum = QVariant(*it).toInt();
+                    }
+                }
+            }
+        }
+        QList<QString> dataList = QString(requestData).split(' ');
+        QVariantList list;
+        QVariantList tmplist;
+        for(int i = 0; i < rowsNum; i++){
+            for(int j = 0; j < columnsNum; j++){
+                if(j == 2){
+                    tmplist.append(dataList[i*columnsNum+j].section("",2,-3));
+                }
+                else{
+                    tmplist.append(dataList[i*columnsNum+j]);
+                }
+            }
+            list.append(tmplist);
+            tmplist.clear();
+        }
+        emit visitsHistoryReceived(list,rowsNum,columnsNum);
+        break;
+    }
+    case Commands::PROFILE_PROPS:{
+        QMap<QString,QString*> map;
+        fillParamsMap(map,it,params.end(),{"NAME","SURNAME","PATRONYMIC"});
+        emit profilePropsReceived(*map["NAME"],*map["SURNAME"],*map["PATRONYMIC"]);
+        break;
+    }
     case Commands::LOGIN_CONFIRM:{
         QMap<QString, QString*> values = {
             {"access_token",NULL},
@@ -170,4 +224,45 @@ void RequestHandlerClient::interpret(){
 
     }
     }
+}
+bool RequestHandlerClient::fillParamsMap(QMap<QString,QString*> &map,
+                                   QList<QString>::iterator &it,
+                                   QList<QString>::iterator &&itEnd, QList<QString> params){
+    QList<QString>::iterator &end = itEnd;
+    if(params.size()!=0){
+        map.clear();
+        for(const auto& s:params){
+            map[s] = nullptr;
+            qDebug() << s + " now is null";
+        }
+    }
+
+        while(it!=end){
+            if(params.contains(*it)){
+                    QString s = *it++;
+                    qDebug() << s+" checked";
+                    if(it!=end){
+                    map[s] = &(*it++);
+                    qDebug() << *map[s];
+                }
+            }
+        }
+        qDebug() << map;
+
+        int count = 0;
+        for(const auto& s: params){
+            if(map[s] == nullptr){
+                qDebug() << s+" in map: " <<map[s];
+                qDebug() << QString("%1 is null").arg(s);
+                count++;
+            }
+            qDebug() << map;
+        }
+        if(count > 0 || map.size() == 0){
+            return 0;
+        }
+        else{
+            return 1;
+        }
+
 }
